@@ -19,4 +19,32 @@ fun main() {
     println("----------------------")
 
     for ((index, s) in strings.withIndex()) println("index = $index, element = $s")
+    println("----------------------")
+    // while statement
+    var i = 0
+    while (i < 10) {
+        if (i % 2 != 0) println("odd: $i")
+        i++
+    }
+
+    // do while statement
+    var x = 0
+    do {
+        println(x)
+        x++
+    } while (x < 10)
+
+    // when statement
+    var isContinue = true
+    do {
+        print("please input something here:")
+        val s = readLine().toString()
+        when (s.trim()) {
+            "hello" -> println("hello, world!")
+            "" -> println("Illegal input!!!")
+            else -> println("hello, $s!")
+        }
+        println("Is continue?")
+        isContinue = readLine().toString().toUpperCase().equals("Y")
+    } while (isContinue)
 }
