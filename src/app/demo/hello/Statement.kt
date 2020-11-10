@@ -17,7 +17,6 @@ fun main() {
     val strings = arrayOf("a", "b", "c")
     for (s in strings.withIndex()) println("element = $s")
     println("----------------------")
-
     for ((index, s) in strings.withIndex()) println("index = $index, element = $s")
     println("----------------------")
     // while statement
