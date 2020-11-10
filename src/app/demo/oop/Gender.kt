@@ -1,4 +1,4 @@
-package app.demo.`object`.domain
+package app.demo.oop
 
 /**
  * @author steve

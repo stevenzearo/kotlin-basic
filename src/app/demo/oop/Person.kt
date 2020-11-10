@@ -1,4 +1,6 @@
-package app.demo.`object`.domain
+package app.demo.oop
+
+import app.demo.oop.Gender
 
 /**
  * @author steve
