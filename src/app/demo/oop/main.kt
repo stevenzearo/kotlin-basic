@@ -15,4 +15,9 @@ fun main() {
     s.growing()
     println("age: ${s.age}")
     println(s.additionalAction())
+    try {
+        throw NullPointerException("a null point exception")
+    } catch (e: Exception) {
+        println(e.printStackTrace())
+    }
 }
