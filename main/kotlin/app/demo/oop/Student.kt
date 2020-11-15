@@ -5,7 +5,7 @@ package app.demo.oop
  */
 
 class Student private constructor(override val name: String, override val gender: Gender) : Person(),
-        DailyAction {
+    DailyAction {
     var id: String? = null
     var className: String? = null
     var courses: Array<String> = arrayOf()

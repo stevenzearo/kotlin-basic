@@ -5,7 +5,13 @@ package app.demo.oop
  */
 
 fun main() {
-    val s = Student("id-001", "howard", 12, Gender.MALE, 23.6f)
+    val s = Student(
+        "id-001",
+        "howard",
+        12,
+        Gender.MALE,
+        23.6f
+    )
     s.setScore(34.5f);
     println(s.greeting("steve"))
     println(s.eating())
