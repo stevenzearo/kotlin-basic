@@ -7,12 +7,12 @@ package app.demo.coroutine
 import kotlinx.coroutines.*
 
 fun main() = runBlocking {
-
     val job = GlobalScope.launch {
         delay(100)
         println("world!")
     }
 
+    job.join()
     helloCoroutine(job)
     delay(500)
 }

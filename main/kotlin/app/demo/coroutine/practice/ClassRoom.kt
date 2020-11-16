@@ -8,8 +8,9 @@ class ClassRoom(val id: String, var name: String) {
     val students: MutableList<Student> = mutableListOf()
 
 
-    fun addStudents(vararg students: Student) {
-        this.students.addAll(students)
+    fun addStudent(student: Student) {
+        student.classRoomId = id;
+        this.students.add(student)
     }
 
     fun removeStudents(vararg students: Student) {

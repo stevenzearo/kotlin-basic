@@ -8,21 +8,22 @@ class StudentCourse(val id: String, val studentId: String, val course: Course) {
         val TOTAL_SCORE: Float = 100f
         val PASSRATE: Float = 0.6f
     }
+
     private var learnedDuration: Int = 0
     private var score: Float = 0f
 
-    fun learn() {
+    suspend fun learn() {
         if (learnedDuration < course.duration) learnedDuration++
     }
 
-    fun practice(addedScore: Float) {
+    suspend fun practice(addedScore: Float) {
         if (score < TOTAL_SCORE)
-        score += addedScore
+            score += addedScore
     }
 
-    fun exam(score: Float) {
+    suspend fun exam(score: Float) {
         if (isLearnedCompleted())
-        this.score = score else
+            this.score = score else
             throw Exception("course not learned complete")
     }
 
