@@ -34,4 +34,8 @@ class StudentCourse(val id: String, val studentId: String, val course: Course) {
     fun isLearnedCompleted(): Boolean = learnedDuration.equals(course.duration * PASSRATE)
 
     fun isFinished(): Boolean = score >= TOTAL_SCORE * PASSRATE
+
+    override fun toString(): String {
+        return "StudentCourse(id='$id', studentId='$studentId', course=$course, learnedDuration=$learnedDuration, score=$score)"
+    }
 }

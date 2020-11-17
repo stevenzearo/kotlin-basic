@@ -23,10 +23,11 @@ class Teacher constructor(val id: String, var name: String) {
             if (!student.courses.map { studentCourse: StudentCourse -> studentCourse.course.id }.toSet()
                     .contains(course.id)
             ) return@foreach
-            val studentCourse =
-                student.courses.filter { studentCourse -> studentCourse.course.id.equals(course) }.first()
-            studentCourse.learn()
-            studentCourse.practice((Math.random() * 10).toFloat())
+            val courses = student.courses.filter { studentCourse -> studentCourse.course.id.equals(course.id) }
+            if (courses.isEmpty()) return@foreach
+
+            student.learn(course)
+            student.practice(course, (Math.random() * 10).toFloat())
         })
     }
 

@@ -1,4 +1,4 @@
-package app.demo.coroutine
+package app.demo.coroutine.demo
 
 /**
  * @author steve

@@ -1,11 +1,10 @@
-package app.demo.coroutine
+package app.demo.coroutine.demo
 
 /**
  * @author steve
  */
 
 import kotlinx.coroutines.*
-import kotlin.concurrent.thread
 
 fun main() {
     val thread = Thread {

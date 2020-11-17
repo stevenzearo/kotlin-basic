@@ -3,16 +3,22 @@ package app.demo.coroutine.practice
 /**
  * @author steve
  */
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlin.random.Random
 
 class School constructor(val name: String, val grades: MutableList<Grade>) {
-    suspend fun hireTeacher(): List<Teacher> {
-        return (1..100).map({ i -> Teacher("teacher-$i", "teacher-name-$i") }).toList()
+    var hiredTeachers: List<Teacher> = listOf()
+    var recruitedStudents: List<Student> = listOf()
+
+    suspend fun hireTeacher(): Unit {
+        hiredTeachers = (1..100).map({ i -> Teacher("teacher-$i", "teacher-name-$i") }).toList()
     }
 
-    suspend fun recruitStudent(): List<Student> {
-        return (1..10000).map { i ->
+    suspend fun recruitStudent(): Unit {
+        recruitedStudents = (1..10000).map { i ->
             val genders = Gender.values()
             Student(
                 "student-$i",
@@ -24,19 +30,24 @@ class School constructor(val name: String, val grades: MutableList<Grade>) {
     }
 
     suspend private fun setGradeForStudent(students: List<Student>) {
-        students.forEach({ student ->
-            val i = student.id.split("-").last().toInt()
-            val grade = grades.get(grades.size % i)
+        val default = Random.Default
+        val classRooms = grades.map { grade -> grade.classRoomMap }.flatMap { cr -> cr.values }.toList()
+        students.forEachIndexed({ studentIndex, student ->
+            val grade = grades.get(default.nextInt(0, grades.size))
             student.gradeId = grade.id
-            student.courses = grade.courses.mapIndexed({ index, course ->
+            student.courses = grade.courses.mapIndexed({ gradeIndex, course ->
                 StudentCourse(
-                    "student-course-&${i * index}",
+                    "student-course-${studentIndex * gradeIndex + studentIndex + gradeIndex}",
                     student.id,
                     course
                 )
             }).toMutableList()
-            val classRoomId = grade.classRoomMap.entries.toTypedArray().get(grade.classRoomMap.size % i).value.id
-            grade.setClassRoomForStudent(classRoomId, student)
+
+            var hasClassRoom: Boolean = false
+            while (!hasClassRoom) {
+                val classRoomId = classRooms.get(default.nextInt(0, classRooms.size)).id
+                hasClassRoom = grade.setClassRoomForStudent(classRoomId, student)
+            }
         })
     }
 
@@ -45,8 +56,9 @@ class School constructor(val name: String, val grades: MutableList<Grade>) {
         val courses = grades.map { grade -> grade.courses }.flatMap { courses -> courses }.toList()
         val teacherClassRoomsMap: MutableMap<Teacher, MutableList<ClassRoom>> = mutableMapOf()
         val teacherCoursesMap: MutableMap<Teacher, MutableList<Course>> = mutableMapOf()
+        val default = Random.Default
         classRooms.forEachIndexed { index, classRoom ->
-            val teacher = teachers.get(teachers.size % index)
+            val teacher = teachers.get(default.nextInt(0, teachers.size))
             val classRooms = teacherClassRoomsMap.get(teacher)
             if (classRooms == null) {
                 teacherClassRoomsMap.put(teacher, mutableListOf(classRoom))
@@ -55,12 +67,13 @@ class School constructor(val name: String, val grades: MutableList<Grade>) {
             }
         }
         courses.forEachIndexed { index, course ->
-            val teacher = teachers.get(teachers.size % index)
+            val teacher = teachers.get(default.nextInt(0, teachers.size))
             val courses = teacherCoursesMap.get(teacher)
             if (courses == null) {
                 teacherCoursesMap.put(teacher, mutableListOf(course))
             } else {
                 courses.add(course)
+                teacherCoursesMap.put(teacher, courses)
             }
         }
 
@@ -69,40 +82,86 @@ class School constructor(val name: String, val grades: MutableList<Grade>) {
             if (classRooms == null) return@forEach
 
             courses.forEachIndexed({ index, course ->
-                val classRoom = classRooms.get(index % classRooms.size)
+                val classRoom = classRooms.get(default.nextInt(0, classRooms.size))
                 teacher.addTeachingClass(classRoom, course)
             })
         })
     }
 
-    suspend private fun startClasses(teachers: List<Teacher>) {
-        grades.forEach({ grade ->
-            grade.classRoomMap.forEach({ classRoomId, classRoom ->
-                val teacher = teachers.firstOrNull({ teacher -> teacher.teachingClassMap.containsKey(classRoomId) })
-                if (teacher != null) {
-                    val teachingCouses = teacher.teachingClassMap.get(classRoomId)
-                    teachingCouses!!.forEach({ course ->
-                        teacher.teach(classRoom, course)
+    suspend private fun startClasses(teachers: List<Teacher>, scope: CoroutineScope): Job {
+        return scope.launch {
+            val classRooms = grades.map { grade -> grade.classRoomMap.map { classRoomMap -> classRoomMap.value } }
+                .flatMap { classRooms -> classRooms }.toList()
+            classRooms.forEach({ classRoom ->
+                val teacher =
+                    teachers.firstOrNull({ teacher -> teacher.teachingClassMap.containsKey(classRoom.id) })
+                val grade = grades.filter { grade -> grade.id.equals(classRoom.gradeId) }.first()
+                teacher!!.teachingClassMap.get(classRoom.id)!!.filter { course -> course.gradeId.equals(grade) }
+                    .forEach({ course ->
+                        (1..20).forEach({teacher.teach(classRoom, course)})
                     })
-                }
             })
-        })
+        }
     }
 
-    fun run() {
-        GlobalScope.launch {
-            val hiredTeachers = hireTeacher()
-            val recruitedStudents = recruitStudent()
+    fun printStudentCurrentCourseInfo() {
+        recruitedStudents.forEach({ student -> println(student) })
+    }
 
+    suspend fun run(scope: CoroutineScope): Job {
+        return scope.launch {
+            hireTeacher()
+            recruitStudent()
             dispatchTeacherClassRoom(hiredTeachers)
             setGradeForStudent(recruitedStudents)
-            startClasses(hiredTeachers)
+            val startClassesJob: Job = startClasses(hiredTeachers, this)
         }
-        // todo coroutine
-
     }
 
-    fun stopRun() {
-
+    suspend fun stopRun(scope: CoroutineScope, job: Job) {
+        if (job.isActive) job.cancel()
     }
+}
+
+fun main(): Unit {
+    val job = GlobalScope.launch {
+
+    val grades = (1..10).map { i ->
+        val grade = Grade("grade-$i", "grade-name-$i")
+        grade.courses.addAll(
+            (1..10).map({ j ->
+                Course(
+                    "course-${i * j + i + j}",
+                    grade.id,
+                    "course-name-${i * j + i + j}",
+                    100f,
+                    20
+                )
+            }).toMutableList()
+        )
+        (1..5).map({ j -> ClassRoom("class-room-${i * j + i + j}", "class-room-name-${i * j + i + j}") })
+            .forEach({ classRoom ->
+                classRoom.gradeId = grade.id
+                grade.classRoomMap.put(classRoom.id, classRoom)
+            })
+        return@map grade
+    }.toMutableList()
+    val school = School("a-fake-school", grades)
+
+        val run = school.run(this)
+//    job.start()
+    var isComplete = false
+/*
+    while (!isComplete) {
+        if (!job.isCompleted && !job.isCancelled) {
+            Thread.sleep(500)
+        } else {
+            isComplete = true
+        }
+    }
+*/
+    school.printStudentCurrentCourseInfo()
+    }
+
+    Thread.sleep(50000)
 }
