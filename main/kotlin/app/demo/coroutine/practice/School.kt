@@ -98,7 +98,7 @@ class School constructor(val name: String, val grades: MutableList<Grade>) {
                 val grade = grades.filter { grade -> grade.id.equals(classRoom.gradeId) }.first()
                 teacher!!.teachingClassMap.get(classRoom.id)!!.filter { course -> course.gradeId.equals(grade) }
                     .forEach({ course ->
-                        (1..20).forEach({teacher.teach(classRoom, course)})
+                        (1..20).forEach({ teacher.teach(classRoom, course) })
                     })
             })
         }
@@ -108,7 +108,8 @@ class School constructor(val name: String, val grades: MutableList<Grade>) {
         recruitedStudents.forEach({ student -> println(student) })
     }
 
-    suspend fun run(scope: CoroutineScope): Job {
+    fun run(scope: CoroutineScope): Job {
+
         return scope.launch {
             hireTeacher()
             recruitStudent()
@@ -125,32 +126,31 @@ class School constructor(val name: String, val grades: MutableList<Grade>) {
 
 fun main(): Unit {
     val job = GlobalScope.launch {
-
-    val grades = (1..10).map { i ->
-        val grade = Grade("grade-$i", "grade-name-$i")
-        grade.courses.addAll(
-            (1..10).map({ j ->
-                Course(
-                    "course-${i * j + i + j}",
-                    grade.id,
-                    "course-name-${i * j + i + j}",
-                    100f,
-                    20
-                )
-            }).toMutableList()
-        )
-        (1..5).map({ j -> ClassRoom("class-room-${i * j + i + j}", "class-room-name-${i * j + i + j}") })
-            .forEach({ classRoom ->
-                classRoom.gradeId = grade.id
-                grade.classRoomMap.put(classRoom.id, classRoom)
-            })
-        return@map grade
-    }.toMutableList()
-    val school = School("a-fake-school", grades)
+        val grades = (1..10).map { i ->
+            val grade = Grade("grade-$i", "grade-name-$i")
+            grade.courses.addAll(
+                (1..10).map({ j ->
+                    Course(
+                        "course-${i * j + i + j}",
+                        grade.id,
+                        "course-name-${i * j + i + j}",
+                        100f,
+                        20
+                    )
+                }).toMutableList()
+            )
+            (1..5).map({ j -> ClassRoom("class-room-${i * j + i + j}", "class-room-name-${i * j + i + j}") })
+                .forEach({ classRoom ->
+                    classRoom.gradeId = grade.id
+                    grade.classRoomMap.put(classRoom.id, classRoom)
+                })
+            return@map grade
+        }.toMutableList()
+        val school = School("a-fake-school", grades)
 
         val run = school.run(this)
 //    job.start()
-    var isComplete = false
+        var isComplete = false
 /*
     while (!isComplete) {
         if (!job.isCompleted && !job.isCancelled) {
@@ -160,7 +160,7 @@ fun main(): Unit {
         }
     }
 */
-    school.printStudentCurrentCourseInfo()
+        school.printStudentCurrentCourseInfo()
     }
 
     Thread.sleep(50000)
